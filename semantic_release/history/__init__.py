@@ -186,6 +186,9 @@ def get_previous_version(version: str) -> Optional[str]:
     :param version: A string with the version number.
     :return: A string with the previous version number.
     """
+    tag_prefix = config.get("vcs_tag_prefix")
+    version_pattern = re.compile(tag_prefix + r'?(\d+.\d+.\d+)')
+
     found_version = False
     for commit_hash, commit_message in get_commit_log():
         logger.debug("Checking commit {}".format(commit_hash))
@@ -195,12 +198,12 @@ def get_previous_version(version: str) -> Optional[str]:
             continue
 
         if found_version:
-            matches = re.match(r"v?(\d+.\d+.\d+)", commit_message)
+            matches = version_pattern.match(commit_message)
             if matches:
                 logger.debug("Version matches regex", commit_message)
                 return matches.group(1).strip()
 
-    return get_last_version([version, "v{}".format(version)])
+    return get_last_version([version, f"{tag_prefix}{version}"])
 
 
 @LoggedFunction(logger)

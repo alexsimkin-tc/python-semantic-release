@@ -187,7 +187,8 @@ class Github(Base):
 
         :return: The status of the request
         """
-        tag = f"v{version}"
+        tag_prefix = config.get('vcs_tag_prefix')
+        tag = f"{tag_prefix}{version}"
         logger.debug(f"Attempting to create release for {tag}")
         success = Github.create_release(owner, repo, tag, changelog)
 
@@ -246,9 +247,9 @@ class Github(Base):
 
         :return: The status of the request
         """
-
         # Find the release corresponding to this version
-        release_id = Github.get_release(owner, repo, f"v{version}")
+        tag_prefix = config.get('vcs_tag_prefix')
+        release_id = Github.get_release(owner, repo, f"{tag_prefix}{version}")
         if not release_id:
             logger.debug("No release found to upload assets to")
             return False
@@ -329,7 +330,8 @@ class Gitlab(Base):
 
         :return: The status of the request
         """
-        ref = "v" + version
+        tag_prefix = config.get('vcs_tag_prefix')
+        ref = f"{tag_prefix}{version}"
         gl = gitlab.Gitlab(Gitlab.API_URL, private_token=Gitlab.token())
         gl.auth()
         try:

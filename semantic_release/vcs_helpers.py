@@ -64,6 +64,8 @@ def get_last_version(skip_tags=None) -> Optional[str]:
     :return: A string containing a version number.
     """
     skip_tags = skip_tags or []
+    tag_prefix = config.get("vcs_tag_prefix")
+    tag_pattern = re.compile(tag_prefix + r"\d+\.\d+\.\d+")
 
     def version_finder(tag):
         if isinstance(tag.commit, TagObject):
@@ -71,10 +73,10 @@ def get_last_version(skip_tags=None) -> Optional[str]:
         return tag.commit.committed_date
 
     for i in sorted(repo.tags, reverse=True, key=version_finder):
-        if re.match(r"v\d+\.\d+\.\d+", i.name):  # Matches vX.X.X
+        if tag_pattern.match(i.name):  # Matches {PREFIX}X.X.X
             if i.name in skip_tags:
                 continue
-            return i.name[1:]  # Strip off 'v'
+            return i.name.replace(tag_prefix, '', 1)  # Strip off a prefix from the tag
 
     return None
 
@@ -199,11 +201,12 @@ def update_changelog_file(version: str, content_to_add: str):
 @LoggedFunction(logger)
 def tag_new_version(version: str):
     """
-    Create a new tag with the version number, prefixed with v.
+    Create a new tag with the version number, prefixed with `config['vcs_tag_prefix']`.
 
     :param version: The version number used in the tag as a string.
     """
-    return repo.git.tag("-a", "v{0}".format(version), m="v{0}".format(version))
+    new_tag = '{0}{1}'.format(config.get('vcs_tag_prefix'), version)
+    return repo.git.tag("-a", new_tag, m=new_tag)
 
 
 @check_repo

@@ -58,9 +58,19 @@ class TestGetPreviousVersion:
 
     @mock.patch(
         "semantic_release.history.get_commit_log",
-        lambda: [("211", "0.10.0"), ("13", "0.9.0")],
+        lambda: [("211", "v0.10.0"), ("13", "v0.9.0")],
     )
     def test_should_return_correct_version_with_v(self):
+        assert get_previous_version("0.10.0") == "0.9.0"
+    
+    @mock.patch(
+        "semantic_release.history.config.get", wrapped_config_get(vcs_tag_prefix="test-v")
+    )
+    @mock.patch(
+        "semantic_release.history.get_commit_log",
+        lambda: [("211", "test-v0.10.0"), ("13", "test-v0.9.0")],
+    )
+    def test_should_return_correct_version_with_test_v(self):
         assert get_previous_version("0.10.0") == "0.9.0"
 
 
