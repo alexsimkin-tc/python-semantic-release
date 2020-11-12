@@ -249,6 +249,7 @@ def publish(**kwargs):
         # A new version was released
         logger.info("Pushing new version")
         push_new_version(
+            new_version=new_version,
             auth_token=get_token(),
             owner=owner,
             name=name,

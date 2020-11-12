@@ -116,6 +116,7 @@ def test_push_new_version(mock_git):
             mock.call("--tags", "origin", "master"),
         ]
     )
+    mock_git.create_head.assert_not_called()
 
 
 def test_push_new_version_with_custom_branch(mock_git):
@@ -124,6 +125,19 @@ def test_push_new_version_with_custom_branch(mock_git):
         [
             mock.call("origin", "release"),
             mock.call("--tags", "origin", "release"),
+        ]
+    )
+
+
+def test_push_new_version_with_maintenance_branch_creation(mock_git):
+    with mock.patch("semantic_release.history.config.get", wrapped_config_get(vcs_release_branch_format='r/{version_tag}')):
+        push_new_version(new_version='1.0.0', branch="testing")
+
+    mock_git.push.assert_has_calls(
+        [
+            mock.call("origin", "testing"),
+            mock.call("--tags", "origin", "testing"),
+            mock.call('origin', 'r/v1.0.0')
         ]
     )
 

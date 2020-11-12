@@ -212,6 +212,7 @@ def tag_new_version(version: str):
 @check_repo
 @LoggedFunction(logger)
 def push_new_version(
+    new_version: str = None,
     auth_token: str = None,
     owner: str = None,
     name: str = None,
@@ -249,6 +250,14 @@ def push_new_version(
     try:
         repo.git.push(server, branch)
         repo.git.push("--tags", server, branch)
+
+        release_branch_format = config.get("vcs_release_branch_format")
+        if release_branch_format:
+            release_branch = release_branch_format.format(
+                version_tag=f'{config.get("vcs_tag_prefix")}{new_version}',
+            )
+            repo.create_head(release_branch)
+            repo.git.push(server, release_branch)
     except GitCommandError as error:
         message = str(error)
         if auth_token:
